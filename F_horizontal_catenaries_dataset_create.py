@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import fsolve
 
-mu = 1.25e-6
+mu = 1.5e-6
 Phase_offset_x = 10  # phase spacing
 Y0 = 20  # starting height of wires at tower
 freq = 50
@@ -16,9 +16,11 @@ O2 = np.array([0, -0.5, 0])  # second measuring point
 D = 250  # distance between towers
 
 # sags of interest
-sags = np.arange(5, Y0-7, 0.5)
+# sags = np.arange(5, Y0-7, 0.5)
+sags = np.array([10])
 # Currents
-Is = np.arange(200, 500, 25)
+# Is = np.arange(200, 500, 25)
+Is = np.array([500])
 # data to be saved
 DataB1s = np.zeros((Is.shape[0], sags.shape[0]))
 DataB2s = np.zeros((Is.shape[0], sags.shape[0]))
@@ -109,10 +111,11 @@ for i, I in enumerate(Is):
         maxB2 = np.max(B2s)
         DataB2s[i, j] = maxB2
 
-import pickle
-with open("D250_Yn20_z.pkl", 'wb') as f:
-    pickle.dump((Is, sags, Y0, D, DataB1s, DataB2s),f)
+# import pickle
+# with open("D250_Yn20_z.pkl", 'wb') as f:
+#     pickle.dump((Is, sags, Y0, D, DataB1s, DataB2s),f)
 
+print(DataB1s, DataB2s)
 
 
 

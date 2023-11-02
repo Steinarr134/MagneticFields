@@ -15,14 +15,13 @@ O = np.zeros(2)
 maxBs = []
 ground_clearances = []
 sags = np.arange(0, 5, 0.1)
-for sag in sags:
+for sag in sags[0:1]:
     Bs = []
     for t in np.arange(0, 1/freq, 1/(freq*50)):
         I_1 = I*np.sin(t*freq*2*np.pi - 120*np.pi*2/360)
         I_2 = I*np.sin(t*freq*2*np.pi)
         I_3 = I*np.sin(t*freq*2*np.pi + 120*np.pi*2/360)
 
-        print(t, I_2)
 
         B = np.zeros(2)  # Magnetic field at measuring point (origin)
 
@@ -33,10 +32,12 @@ for sag in sags:
             OP_unit = OP/OP_length
             OP_unit_perp = np.array([OP_unit[1], -OP_unit[0]])
             B_length = mu*I_n/(2*np.pi*OP_length)
-            print(OP_unit_perp*B_length)
+            # print(OP_unit_perp*B_length)
             B += OP_unit_perp*B_length
         Bs.append(np.sqrt(np.sum(np.power(B, 2))))
+        print(B, I_1, I_2, I_3)
     maxB = np.max(Bs)
+    print(maxB)
     maxBs.append(maxB*1e6)
     ground_clearances.append(Y0-sag)
 

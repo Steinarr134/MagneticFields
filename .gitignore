@@ -1,3 +1,8 @@
+# Data that shouldn't be backed up on git
+SerialStuff/Data/*
+ThesisGraphs/Graphs/*
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -42,3 +42,41 @@ for j, sag in enumerate(sags):
         slope = B2/B1
         sag_estimate = func(slope)
         print(sag, sag_estimate)
+
+
+"""
+Probing how the inaccuracy in sensor spacing will affect sag accuracy
+"""
+# this is with coil spacing = 0.5
+B1, B2 = 5.22982512e-06, 4.72460358e-06
+slope = B2/B1
+sag_estimate = func(slope)
+print(f"using D = 0.5 we get {sag_estimate=}")
+
+# this is with coil spacing = 0.505
+B1, B2 =5.22982512e-06, 4.71986828e-06
+slope = B2/B1
+sag_estimate = func(slope)
+print(f"but using D = 0.505 we get {sag_estimate=}")
+
+
+"""
+Probing how changing mu due to perhaps humidity will affect sag accuracy
+"""
+# this is with mu = 1.25e-6
+B1, B2 = 5.22982512e-06, 4.72460358e-06
+slope = B2/B1
+sag_estimate = func(slope)
+print(f"using mu=1.25e-6 we get {sag_estimate=}")
+
+# this is with mu = 1.5e-6
+B1, B2 = 6.27579014e-06, 5.6695243e-06
+slope = B2/B1
+sag_estimate = func(slope)
+print(f"but using mu=1.5e-6 we get {sag_estimate=}")
+
+
+"""
+Probing how, if the ground bends the field since it is a better conductor than the air
+how wil that affect the sag accuracy
+"""
