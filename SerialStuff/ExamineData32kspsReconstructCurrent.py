@@ -1,5 +1,3 @@
-import os
-
 from matplotlib import pyplot as plt
 import numpy as np
 import scipy.fftpack
@@ -9,7 +7,7 @@ plt.style.use('dark_background')
 # filename = "Data\\magnetic_raw_2023_10_23___13_08_21.txt"
 
 # recorded under otl at 32 ksps
-# filename = "Data\\magnetic_raw_2023_10_30___21_05_13.txt"
+filename = "Data\\magnetic_raw_2023_10_30___21_05_13.txt"
 #
 # recorded on my living room floor
 # filename = "Data\\magnetic_raw_2023_10_31___14_13_21.txt"
@@ -17,14 +15,6 @@ plt.style.use('dark_background')
 # recorded out in an empty lot approx. 1 km from otl
 # filename = "Data\\magnetic_raw_2023_10_31___16_12_28.txt"
 
-#
-# filename = "Data\\magnetic_raw_2023_11_09___12_42_10_wireloop_experiment1.txt"
-
-# newest file:
-files = os.listdir("Data")
-filename = "Data\\" + files[-1]
-
-print(filename)
 
 with open(filename, 'rb') as f:
     lines = f.readlines()
@@ -35,22 +25,6 @@ A = []
 B = []
 T = []
 t = 0
-
-def find_first_period_start(stuff):
-    ready = False
-    for i in range(len(stuff)):
-        if stuff[i] < 0:
-            ready = True
-        if ready and stuff[i]>0 and stuff[i+1]>0:
-            return i
-def find_last_period_end(stuff):
-    ready = False
-    for i in range(1, len(stuff)):
-        if stuff[-i] > 0:
-            ready = True
-        if ready and stuff[-i] < 0:
-            return len(stuff)-i
-
 
 def twos_comp(val, bits):
     """compute the 2's complement of int value val"""
@@ -80,34 +54,40 @@ for i, line in enumerate(lines):
     # using float format'
     # tabs = line.split(b'\t')
     if b'was' in line:
-        start = find_first_period_start(A)
-        end = find_last_period_end(A)
-        print(start, end)
-        A = np.array(A[start:end])
-        A = A - np.average(A)
-        T = T[start:end]
-
-        plt.figure(filename)
-        plt.subplot(1, 2, 1)
+        plt.figure("original")
         plt.plot(T, A)
         # plt.show()
         #
-        plt.subplot(1, 2, 2)
+        plt.figure("fft")
         N = len(A)
-        # yf = scipy.fftpack.fft(scipy.signal.windows.flattop(N)*np.array(A))
-        yf = scipy.fftpack.fft(np.array(A))
-        xf = np.linspace(0.0, 32000/2, N//2)
+        yf = scipy.fftpack.fft(A)
+        xf = scipy.fftpack.fftfreq(N, 1/32000)
+
 
         # fig, ax = plt.subplots()
-        ybla =  2.0/N * np.abs(yf[:N//2])
-        import pickle
-        with open(r"C:\Users\Notandi\PycharmProjects\MagneticFields\LabTestFrequencyResponseOfCoil\fft_coil_emf.pkl", 'wb+') as pf:
-            pickle.dump((xf, ybla), pf)
-        with open(r"C:\Users\Notandi\PycharmProjects\MagneticFields\LabTestFrequencyResponseOfCoil\coil_emf.pkl", 'wb+') as pf:
-            pickle.dump((A, T), pf)
-        plt.plot(xf, ybla)
+        y_fftplot =  2.0/N * np.abs(yf[:N//2])
+        x_fftplot = np.linspace(0.0, 32000/2, N//2)
+        # plt.plot(yf)
+        # plt.show()
+        # plt.plot(yf)
+        fixed_yf = []
+        for i in range(len(yf)):
+            if -100 < xf[i] < 100:
+                fixed_yf.append(yf[i])
+                continue
+            fixed_yf.append(yf[i]*50/xf[i])
+        # plt.plot(xf, fixed_yf)
+        plt.plot(x_fftplot, y_fftplot)
+        plt.plot(x_fftplot, 2.0/N * np.abs(fixed_yf[:N//2]))
+        # plt.show()
+        plt.figure("org fft")
+        plt.plot(xf, yf)
+        plt.plot(xf, fixed_yf)
+        plt.figure("reconstructed")
+        plt.plot(A)
+        recon = scipy.fftpack.ifft(fixed_yf)
+        plt.plot(recon)
         plt.show()
-        quit()
 
         # # apply a butterworth lowpass filter of different degrees
         # for j in range(1, 20, 3):

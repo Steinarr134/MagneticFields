@@ -81,6 +81,7 @@ for i, I in enumerate(Is):
                     OP_unit = OP/OP_length
                     integral_result_1 += np.cross(dl, OP_unit)/(OP_length**2)
 
+
                     OP = last_P - O2
                     OP_length = np.sqrt(np.sum(np.power(OP, 2)))
                     OP_unit = OP/OP_length
