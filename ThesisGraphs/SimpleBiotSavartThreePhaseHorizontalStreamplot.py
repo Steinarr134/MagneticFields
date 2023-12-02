@@ -66,7 +66,9 @@ for n, t in enumerate(timepoints):
     #     print(lw)
     #     # axs[0].contour(X, Y, B_phase_strength[:, :, p], locator=ticker.LogLocator(subs=(1, 2, 3, 4, 5, 6, 7, 8, 9)), colors=colors[p])
     #     axs[0].streamplot(X[::a, ::a], Y[::a, ::a], B_phase_direction[::a, ::a, 0, p], B_phase_direction[::a, ::a, 1, p], linewidth=lw, color=colors[p])
-    lw = np.log(B_strength[::a, ::a]) + lw_offset
+    lw = (np.log(B_strength[::a, ::a]) + lw_offset)
+    lw[lw>2] =
+    print(np.min(lw), np.max(lw))
     # axs[1].contour(X, Y, B_strength, locator=ticker.LogLocator(subs=(1, 2, 3, 4, 5, 6, 7, 8, 9)))
     axs[n].streamplot(X[::a, ::a], Y[::a, ::a], B_direction[::a, ::a, 0], B_direction[::a, ::a, 1], linewidth=lw)
     axs[n].set_title(f"at $t={int(t*1000)} ms$")

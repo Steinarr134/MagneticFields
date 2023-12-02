@@ -75,7 +75,6 @@ slope = B2/B1
 sag_estimate = func(slope)
 print(f"but using mu=1.5e-6 we get {sag_estimate=}")
 
-
 """
 Probing how, if the ground bends the field since it is a better conductor than the air
 how wil that affect the sag accuracy

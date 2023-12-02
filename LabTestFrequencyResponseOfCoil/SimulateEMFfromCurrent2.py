@@ -91,6 +91,9 @@ for i in range(1, len(coil_t)):
 
 emf_sim_filtered = scipy.ndimage.uniform_filter1d(emf_sim_filtered, 3)
 
-plt.plot(coil_t, emf_sim_filtered)
-plt.plot(coil_t, coil_emf)
+plt.plot(coil_t*1000, emf_sim_filtered)
+plt.plot(coil_t*1000, coil_emf)
+plt.ylabel(r"emf [$\mu V$]")
+plt.xlabel("Time [ms]")
+plt.legend(["Simulated emf from current", "Measured emf"])
 plt.show()

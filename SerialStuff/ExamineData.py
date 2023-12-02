@@ -1,11 +1,11 @@
 from matplotlib import pyplot as plt
 import numpy as np
 plt.style.use('dark_background')
-# 4k sps of just minimal noise
-# filename = "Data\\magnetic_raw_2023_10_23___13_08_21.txt"
+# 4k sps
+filename = "Data\\magnetic_raw_2023_10_29___15_32_22.txt"
 
 # recorded under otl at 1000 sps
-filename = "Data\\magnetic_raw_2023_10_29___15_32_22.txt"
+# filename = "Data\\magnetic_raw_2023_10_22___20_49_39.txt"
 with open(filename, 'rb') as f:
     lines = f.readlines()
 
@@ -40,20 +40,23 @@ start = 105000
 #     B = []
 #     t = 0
 # for i, line in enumerate(lines[start + s*3900:(start+(s+1)*3900)]):
-for i, line in enumerate(lines[1000:]):
+for i, line in enumerate(lines[1050:]):
+    if len(line) < 5:
+        continue
     # using float format'
 
     # tabs = line.split(b'\t')
     # A.append(float(tabs[0]))
     # B.append(float(tabs[1]))
-    # T.append(i*0.00097)
+    # T.append(i*0.97)
 
     # for hexaformat
     header = line[0]
     pps = header & 0x40
     header_i = header & 0x3f
     t += (header_i - last_i)%0x40
-    T.append(t)
+    # print(i, line)
+    T.append(t*0.97/4)
     A.append(uV_A(line[1:7]))
     B.append(uV_B(line[7:13]))
     if (last_i+1)%0x40 != header_i:
@@ -66,7 +69,7 @@ for i, line in enumerate(lines[1000:]):
 
 print(f"{missing_count=}, total={len(lines)}")
 
-plt.plot(T, B)
+# plt.plot(T, B)
 plt.plot(T, A)
 
 A_rms = []
@@ -80,7 +83,10 @@ for i in t_rms:
     A_rms.append(np.sqrt(np.mean(np.square(A[i-1950:i+1950]))))
     B_rms.append(np.sqrt(np.mean(np.square(B[i-1950:i+1950]))))
     sag.append(func(A_rms[-1]/B_rms[-1])*1000)
-plt.plot(t_rms, A_rms)
-plt.plot(t_rms, B_rms)
+# plt.plot(t_rms, A_rms)
+# plt.plot(t_rms, B_rms)
 # plt.plot(t_rms, sag)
+plt.title(r"4k sps")
+plt.xlabel("time [ms]")
+plt.ylabel(r"emf [$\mu V$]")
 plt.show()

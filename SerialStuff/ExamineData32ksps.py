@@ -18,11 +18,11 @@ plt.style.use('dark_background')
 # filename = "Data\\magnetic_raw_2023_10_31___16_12_28.txt"
 
 #
-# filename = "Data\\magnetic_raw_2023_11_09___12_42_10_wireloop_experiment1.txt"
+filename = "Data\\magnetic_raw_2023_11_09___12_42_10_wireloop_experiment1.txt"
 
 # newest file:
-files = os.listdir("Data")
-filename = "Data\\" + files[-1]
+# files = os.listdir("Data")
+# filename = "Data\\" + files[-1]
 
 print(filename)
 
@@ -87,12 +87,15 @@ for i, line in enumerate(lines):
         A = A - np.average(A)
         T = T[start:end]
 
-        plt.figure(filename)
-        plt.subplot(1, 2, 1)
-        plt.plot(T, A)
-        # plt.show()
+        # plt.figure(filename)
+        # plt.subplot(1, 2, 1)
+        plt.plot(np.array(T)*1000, A)
+        plt.title(r"32k sps")
+        plt.xlabel("time [ms]")
+        plt.ylabel(r"emf [$\mu V$]")
+        plt.show()
         #
-        plt.subplot(1, 2, 2)
+        # plt.subplot(1, 2, 2)
         N = len(A)
         # yf = scipy.fftpack.fft(scipy.signal.windows.flattop(N)*np.array(A))
         yf = scipy.fftpack.fft(np.array(A))
@@ -100,14 +103,17 @@ for i, line in enumerate(lines):
 
         # fig, ax = plt.subplots()
         ybla =  2.0/N * np.abs(yf[:N//2])
-        import pickle
-        with open(r"C:\Users\Notandi\PycharmProjects\MagneticFields\LabTestFrequencyResponseOfCoil\fft_coil_emf.pkl", 'wb+') as pf:
-            pickle.dump((xf, ybla), pf)
-        with open(r"C:\Users\Notandi\PycharmProjects\MagneticFields\LabTestFrequencyResponseOfCoil\coil_emf.pkl", 'wb+') as pf:
-            pickle.dump((A, T), pf)
+        # import pickle
+        # with open(r"C:\Users\Notandi\PycharmProjects\MagneticFields\LabTestFrequencyResponseOfCoil\fft_coil_emf.pkl", 'wb+') as pf:
+        #     pickle.dump((xf, ybla), pf)
+        # with open(r"C:\Users\Notandi\PycharmProjects\MagneticFields\LabTestFrequencyResponseOfCoil\coil_emf.pkl", 'wb+') as pf:
+        #     pickle.dump((A, T), pf)
         plt.plot(xf, ybla)
+        plt.xlabel("Frequency [Hz]")
+        plt.ylabel(r"emf [$\mu V$]")
+        plt.title("FFT")
         plt.show()
-        quit()
+        # quit()
 
         # # apply a butterworth lowpass filter of different degrees
         # for j in range(1, 20, 3):

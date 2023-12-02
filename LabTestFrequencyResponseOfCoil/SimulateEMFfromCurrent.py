@@ -75,7 +75,6 @@ plt.plot(odd_frequencies, np.abs(Bn_sim))
 plt.plot(odd_frequencies, np.abs(Bn_coil))
 plt.legend(["Simulated emf from current", "Measured emf"])
 plt.title("Fourier series component of the frequencies")
-plt.figure()
 
 """apply a butterworth filter on both signals and compare them"""
 
@@ -87,6 +86,7 @@ sim_fs = 1/np.average(np.diff(t_space))
 butterworth = scipy.signal.butter(7, 70, 'lowpass', output='sos', fs=sim_fs)
 filtered_sim = scipy.signal.sosfilt(butterworth, emf)
 
+plt.figure("Butterworth filter")
 plt.plot(t_space, filtered_sim)
 plt.plot(coil_t, filtered_coil)
 plt.legend(["Simulated emf from current", "Measured emf"])

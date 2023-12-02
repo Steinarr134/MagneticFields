@@ -26,11 +26,30 @@ B = []
 T = []
 t = 0
 
+def find_first_period_start(stuff):
+    ready = False
+    for i in range(len(stuff)):
+        if stuff[i] < 0:
+            ready = True
+        if ready and stuff[i]>0 and stuff[i+1]>0:
+            return i
+
+
+def find_last_period_end(stuff):
+    ready = False
+    for i in range(1, len(stuff)):
+        if stuff[-i] > 0:
+            ready = True
+        if ready and stuff[-i] < 0:
+            return len(stuff)-i
+
+
 def twos_comp(val, bits):
     """compute the 2's complement of int value val"""
     if (val & (1 << (bits - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
         val = val - (1 << bits)        # compute negative value
     return val
+
 
 def raw_signed(h):
     raw = int(h, base=16)
@@ -54,6 +73,12 @@ for i, line in enumerate(lines):
     # using float format'
     # tabs = line.split(b'\t')
     if b'was' in line:
+        start = find_first_period_start(A)
+        end = find_last_period_end(A)
+        print(start, end)
+        A = np.array(A[start:end])
+        A = A - np.average(A)
+        T = T[start:end]
         plt.figure("original")
         plt.plot(T, A)
         # plt.show()
@@ -79,6 +104,9 @@ for i, line in enumerate(lines):
         # plt.plot(xf, fixed_yf)
         plt.plot(x_fftplot, y_fftplot)
         plt.plot(x_fftplot, 2.0/N * np.abs(fixed_yf[:N//2]))
+        plt.xlabel("Frequency [Hz]")
+        plt.title("FFT")
+        plt.legend(["emf in coil", "Reconstructed current"])
         # plt.show()
         plt.figure("org fft")
         plt.plot(xf, yf)
