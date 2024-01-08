@@ -74,7 +74,13 @@ plt.title("difference between sag(slopes) and fitted")
 plt.plot(slopes, sags - func(slopes, *popt))
 # print((xs, func(xs, *popt)))
 print(popt)
+
+
+plt.figure()
+plt.title("")
 plt.show()
+
+
 quit()
 
 slopes = []

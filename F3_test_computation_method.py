@@ -16,8 +16,8 @@ sag_zs = [-6397.04420309,  15075.57886288, -11784.0619688,  3068.56372453]
 sag_poly = np.poly1d(sag_zs)
 
 def func(x):
-    # return 2.09385992/np.sinh(x - 1.0043624) +30.68953421
-    return 4.66487133e+03/np.cosh(x -8.58502502e-01) -4.65016916e+03
+    return 2.09385992/np.sinh(x - 1.0043624) +30.68953421
+    # return 4.66487133e+03/np.cosh(x -8.58502502e-01) -4.65016916e+03
 
 """
 Test out computation methods to get I from B1 and B2

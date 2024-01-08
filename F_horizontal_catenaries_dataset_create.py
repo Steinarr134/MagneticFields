@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import fsolve
 
-mu = 1.5e-6
+mu = 1.25e-6
 Phase_offset_x = 10  # phase spacing
 Y0 = 20  # starting height of wires at tower
 freq = 50
@@ -17,7 +17,7 @@ D = 250  # distance between towers
 
 # sags of interest
 # sags = np.arange(5, Y0-7, 0.5)
-sags = np.array([10])
+sags = np.array([8])
 # Currents
 # Is = np.arange(200, 500, 25)
 Is = np.array([500])
@@ -26,7 +26,7 @@ DataB1s = np.zeros((Is.shape[0], sags.shape[0]))
 DataB2s = np.zeros((Is.shape[0], sags.shape[0]))
 
 # range of z to integrate over wire
-zrange = np.arange(0, D/2, 1)
+zrange = np.linspace(0, D/2, 100)
 for i, I in enumerate(Is):
     maxBs = []
     ground_clearances = []
