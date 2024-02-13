@@ -8,7 +8,8 @@ plt.style.use('dark_background')
 # plt.rcParams['text.usetex'] = True
 
 # Create the figure and the line that we will manipulate
-fig1, ax1 = plt.subplots()
+# plt.figure()
+fig1, ax1 = plt.subplots(num="main")
 fig1.subplots_adjust(left=0.02, right=0.98, bottom=0.1, top=0.98, wspace=0.4)
 ax1.remove()
 # gs1 = fig1.add_gridspec(2, 3)
@@ -29,7 +30,7 @@ for i, param in enumerate(params1):
     params1[param]['ax'] = plt.subplot(sliderspec[1:, i])
     params1[param]['slider'] = Slider(
         ax=params1[param]['ax'],
-        label=params1[param]['dispname'],
+        label=params1[param]['dispname'].split('[')[0],
         valmin=params1[param]['min'],
         valmax=params1[param]['max'],
         valinit=params1[param]['init'],
@@ -57,14 +58,11 @@ ResetButton.on_clicked(reset_params)
 # freq_slider.on_changed(update)
 # amp_slider.on_changed(update)
 
-# create second figure that shows B1/B2 as a function of thing to be chosen
-
-# fig2, ax2 = plt.subplots()
-# ax2.remove()
-# gs1 = fig2.add_gridspec(1,1)
-# Axes["chosen"] = fig2.add_subplot(gs1[0, 0])
-# fig2.subplots_adjust(left=0.3)
-# Axes["Radio"] = [fig2.add_axes([0.02, 0.5, 0.1, 0.4])]
+# create second figure for plotting something else
+fig2, ax2 = plt.subplots(num="test")
+ax2.remove()
+Axes["test"] = fig2.add_subplot()
+Axes["test"].plot([1, 4, 2, 5, 7, 1, 6, 7, 8])
 
 Axes["chosen"] = fig1.add_subplot(gs1[:, 4:])
 Axes["Radio"] = [fig1.add_subplot(gs1[0:2, 3])]

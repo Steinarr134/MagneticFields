@@ -1,12 +1,12 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.optimize import fsolve, curve_fit
+from scipy.optimize import fsolve, curve_fit, least_squares
 
 mu = 1.25e-6
 f = 50
 h = 12
-N_t = 100
-I0 = 500
+N_t = 1000
+I0 = np.sqrt(2)*400
 phase_order = [-1, 0, 1]
 tspace = np.arange(0, 1/f, (1/f)/N_t)
 
@@ -23,25 +23,25 @@ def func(x):
 # the parameters to set
 params1 = {
 
-    "negphase": {"init": 0, "min": -180, "max": 180, "dispname": r"NP"},
-    "negampl": {"init": 0, "min": 0, "max": 5, "dispname": r"NA"},
-    "zerophase": {"init": 0, "min": -180, "max": 180, "dispname": r"ZP"},
-    "zeroampl": {"init": 0, "min": 0, "max": 5, "dispname": r"ZA"},
+    "negphase": {"init": 0, "min": -180, "max": 180, "dispname": r"NP[°]"},
+    "negampl": {"init": 0, "min": 0, "max": 2.5, "dispname": r"NA [%]"},
+    "zerophase": {"init": 0, "min": -180, "max": 180, "dispname": r"ZP[°]"},
+    "zeroampl": {"init": 0, "min": 0, "max": 5, "dispname": r"ZA[%]"},
     # "phi_L": {"init": 0, "min": -45, "max": 45, "dispname": r"$\phi_L$"},
     # "phi_R": {"init": 0, "min": -45, "max": 45, "dispname": r"$\phi_R$"},
     # "epsilon_L": {"init": 0, "min": -0.72, "max": 0.72, "dispname": r"$\epsilon_L$"},
     # "epsilon_R": {"init": 0, "min": -0.72, "max": 0.72, "dispname": r"$\epsilon_R$"},
     # "I_0": {"init": 500, "min": 100, "max": 1000, "dispname": r"$I_0$"},
-    "Y0": {"init": 20, "min": 10, "max": 20, "dispname": r"Y0"},
-    "sag": {"init": 8, "min": 2, "max": 10, "dispname": r"sag"},
-    "d_P": {"init": 10, "min": 5, "max": 11, "dispname": r"$d_P$"},
-    "D": {"init": 250, "min": 250, "max": 450, "dispname": r"$D$"},
+    "Y0": {"init": 20, "min": 10, "max": 20, "dispname": r"Y0[m]"},
+    "sag": {"init": 8, "min": 2, "max": 10, "dispname": r"sag[m]"},
+    "d_P": {"init": 10, "min": 5, "max": 11, "dispname": r"$d_P$[m]"},
+    "D": {"init": 250, "min": 250, "max": 450, "dispname": r"D[m]"},
 }
 
 Axes = {}
 
 
-def get_sin_params(tspace, samples):
+def get_sin_params0(tspace, samples):
     def sin(t, A, p, w):
         return A*np.sin(w*t + p)
 
@@ -50,6 +50,41 @@ def get_sin_params(tspace, samples):
     # print(eh, ehannad)
     return p0[0], eh[1]
 
+def get_sin_params(t, y):
+    # This one is stupid and only works when the signal is very close to being a sine wave
+    magnitude = (np.max(y) - np.min(y))/2
+    # Indices of points *before* zero-crossing
+    indi = np.where(np.diff(y>0))[0]
+    # use only negative to positive crossings
+    indi = indi[y[indi]<=0]
+    if not indi:
+        print("problemo")
+        print("sdlfksjdfljk")
+        print(repr(t), repr(y))
+
+    indi = indi[0]
+
+    # Find the zero crossing by linear interpolation
+    dx = t[indi+1] - t[indi]
+    dy = y[indi+1] - y[indi]
+    zc = -y[indi] * (dx/dy) + t[indi]
+    phase = -zc*2*np.pi*50
+    # fos phase just find crossover point
+    # ready = False
+    # crossover = 0
+    # for i in range(len(y)):
+    #     if y[i] < 0:
+    #         ready = True
+    #     if ready and y[i]>0 and y[i+1]>0:
+    #         crossover = i
+    #         break
+    # phase = -t[crossover]*2*np.pi*50
+    # plt.figure("test")
+    # plt.plot(t, y)
+    # plt.plot(t[crossover], y[crossover], 'r+')
+    # plt.plot(t, magnitude*np.sin(2*np.pi*50*t + phase))
+    # plt.show()
+    return magnitude, phase
 
 def estimate_h(B1, B2, d_P, Y0):
     """
@@ -75,12 +110,94 @@ def estimate_h(B1, B2, d_P, Y0):
     phi = np.pi/2 - (p1-p2)
 
     h1 = (1/np.tan(phi))*d_P/np.sqrt(3) + 0.38
-    h2 = Y0 - func(a2/(a1*np.sqrt(2)*np.sin(phi))) + 0.05
+    h2 = Y0 - func(a2/(a1*np.sqrt(2)*np.sin(np.pi*2 + p1*2 + phi))) + 0.05
 
-    print(a1*np.sqrt(2)*np.sin(phi), B1[25, 0])
+    # plt.figure("test")
+    # plt.plot(tspace, B45)
+    # plt.plot(tspace, a1*np.sin(2*np.pi*50*tspace + p1))
+    # plt.plot(tspace, Bx)
+    # plt.plot(tspace, a2*np.sin(2*np.pi*50*tspace + p2))
+    # plt.show()
+
+    # if abs(np.max(B1[:, 0]) - (a1*np.sqrt(2)*np.sin(np.pi*2 + p1*2 + phi))) > 1e-7:
+    #     plt.figure("helllo")
+    #     plt.plot(tspace, B45)
+    #     plt.plot(tspace, Bx)
+    #     plt.plot(tspace, B1[:, 0])
+    #     w = np.pi*2*50
+    #     txmax = (-p2 + np.pi/2)/w
+    #     plt.plot(txmax, a1*np.sin(w*txmax + p1), 'r+')
+    #     plt.plot(txmax, a1*np.sin(w*txmax + p1)*np.sqrt(2), 'r*')
+    #     print("comprende")
+    # print(a1*np.sqrt(2)*np.sin(phi), B1[25, 0])
 
     return h1, h2
 
+def backsimulate_h_from_xy(B1, Y0, D, d_P):
+
+    ratio = np.max(B1[:, 1])/np.max(B1[:, 0])
+
+    def calc_ratio(h):
+        zrange = np.linspace(0, D/2, 100)
+        tspace = np.linspace(0, 1/f, N_t)
+        I_C = np.sin(2*np.pi*f*tspace)*I0
+        I_L = np.sin(2*np.pi*f*tspace + np.deg2rad(90 + 120))*I0
+        I_R = np.sin(2*np.pi*f*tspace + np.deg2rad(90 - 120))*I0
+
+        ret = []
+        sag = Y0 - h[0]
+
+        # First work out the geometries of the catenary curve
+        # define Hfunc which has to be solved to find a and b
+        def Hfunc(a):
+            return D - 2*a*np.arccosh((sag + a)/a)
+
+        # solve Hfunc to find a and b
+        a = fsolve(Hfunc, np.array([100]))[0]
+        b = a - (Y0 - sag)
+
+        # now define the function  y = catenary(z)
+        def catenary(z):
+            return a*np.cosh(z/a) - b
+
+        # list to hold the results of this simulation
+        B1 = np.zeros((N_t,3))
+
+        """
+        B = mu*I/4pi * Integral over wire of [ dl x r_unit / r^2 ]
+        """
+
+        # might be able to make these calculations faster by skipping the current and stuff
+        # that cancels out when taking the ration B1/B2 however,
+        # first calculate the integral for each phase, B will then scale with I as I changes over time
+        for p_n, (P_x, I_P) in enumerate(zip([-d_P, 0, d_P], [I_L, I_C, I_R])):
+
+            integral_result = np.zeros(3)
+            # starting point of curve
+            last_P = np.array([P_x, catenary(0), 0])
+            for z in zrange[1:]:
+                next_P = np.array([P_x, catenary(z), z])
+                dl = next_P - last_P
+                OP = last_P - O
+                OP_length = np.sqrt(np.sum(np.power(OP, 2)))
+                OP_unit = OP/OP_length
+                integral_result += np.cross(dl, OP_unit)/(OP_length**2)
+                last_P = next_P
+            # since integral only uses half the wire the other half is same except mirrored over XY plane
+            # thus the Z component drops out but X and Y component doubles
+            integral_result = 2*integral_result
+            integral_result[2] = 0
+            # now that the integral has been computed the B can be simulated over time
+
+            # add this to B
+            B1 += mu*np.atleast_2d(I_P).T*integral_result/(4*np.pi)
+
+        return ratio - B1[:, 1]/B1[:, 0]
+
+    h0 = (3 + Y0)/2
+
+    h = least_squares(calc_ratio, [h0], bounds=((3), (Y0-0.5)))["x"]
+    return h
 
 
 def get_unbalance(plot=True):
@@ -270,7 +387,7 @@ def update(slidername, val):
 
     # update radioplot as well if thing doesn't mess with the geomtery
     radio = Axes["Radio"][1]
-    if radio.value_selected in ["ZA", "ZP", "NA", "NP"]:
+    if any(s in radio.value_selected for s in ["ZA", "ZP", "NA", "NP"]):
         plot_as_a_function_of(radio.value_selected)
 
 
@@ -345,8 +462,15 @@ def plot_as_a_function_of(thing):
     h_1 = []
     h_2 = []
     h_3 = []
+    h_backsims = []
     h_tans = []
     h_funky_tans = []
+    px1s = []
+    px2s = []
+    py1s = []
+    py2s = []
+    B1s =[]
+    B2s = []
     print(thing, NP_space, NA_space, ZP_space, ZA_space, Y0_space, d_P_space, D_space, sag_space)
 
     for NP in NP_space:
@@ -465,9 +589,6 @@ def plot_as_a_function_of(thing):
                                         # add this to B
                                         B2 += mu*np.atleast_2d(I_P).T*integral_result/(4*np.pi)
 
-                                    """
-                                    Add the results of the two developed methods to the text box
-                                    """
                                     # correct result
                                     lines = []
                                     h = Y0 - sag
@@ -495,22 +616,75 @@ def plot_as_a_function_of(thing):
                                     ellipse = np.linalg.norm(B1, axis=1)
                                     h_ellipse = np.max(ellipse)*d_P/(np.min(ellipse)*np.sqrt(3))+0.4
                                     h_3.append(h_ellipse)
+
+                                    # backsimulated ratio betwwwen x and y component:
+                                    # h_backsims.append(backsimulate_h_from_xy(B1, Y0, D, d_P))
+
+
+                                    Ax1, px1 = get_sin_params(tspace, B1[:, 0])
+                                    Ay1, py1 = get_sin_params(tspace, B1[:, 1])
+                                    Ax2, px2 = get_sin_params(tspace, B2[:, 0])
+                                    Ay2, py2 = get_sin_params(tspace, B2[:, 1])
+                                    px1s.append(px1)
+                                    px2s.append(px2)
+                                    py1s.append(py1)
+                                    py2s.append(py2)
+                                    B1s.append(B1)
+                                    B2s.append(B2)
+
     print("chosen plot update")
     ax = Axes["chosen"]
     ax.clear()
     h_1 = np.array(h_1); h_2 = np.array(h_2); h_real=np.array(h_real); h_3 = np.array(h_3)
-    ax.plot(chosen, h_real, 'y')
-    ax.plot(chosen, h_1, 'b')
-    ax.plot(chosen, h_2, 'r')
-    h_avg = (h_1 + h_2)/2
-    ax.plot(chosen, h_avg)
-    ax.plot(chosen, h_3, 'g')
+    h_tans = np.array(h_tans); h_funky_tans = np.array(h_funky_tans)
+    px1s = np.array(px1s);px2s = np.array(px2s);py1s = np.array(py1s);py2s = np.array(py2s)
+    ax.plot(chosen, h_real, 'y', label="real")
+    ax.plot(chosen, h_1, 'b', label=f"By/Bx | maxerr={max(abs(h_real-h_1)):.2f}")
+    ax.plot(chosen, h_2, 'r', label=f"func(B1/B2) | maxerr={max(abs(h_real-h_2)):.2f}")
+    h_avg = (1.2*h_1 + 0.8*h_2)/2
+    ax.plot(chosen, h_avg, 'w',  label=f"avg | maxerr={max(abs(h_real-h_avg)):.2f}")
+
+    ax.plot(chosen, h_tans, 'b--', label=f"tan(phi) | maxerr={max(abs(h_real-h_tans)):.2f}")
+    ax.plot(chosen, h_funky_tans, 'r--', label=f"func(...sin(phi)) | maxerr={max(abs(h_real-h_funky_tans)):.2f}")
+    h_avg2 = (h_tans + h_funky_tans)/2
+    ax.plot(chosen, h_avg2, 'w--', label=f"avgtans | maxerr={max(abs(h_real-h_avg2)):.2f}")
+    # ax.plot(chosen, h_3, 'g', label=f"ellipse | maxerr={max(abs(h_real-h_3)):.2f}")
+    # ax.plot(chosen, h_backsims, 'c')
     ax.set_ylabel("h[m]")
     ax.set_xlabel(thing)
-    ax.legend(["real",
-               f"By/Bx | maxerr={max(abs(h_real-h_1)):.2f}",
-               f"func(B1/B2) | maxerr={max(abs(h_real-h_2)):.2f}",
-               f"avg | maxerr={max(abs(h_real-h_avg)):.2f}"])
+    ax.legend(fontsize="10")
+    # ax.legend(["real",
+    #            f"By/Bx | maxerr={max(abs(h_real-h_1)):.2f}",
+    #            f"func(B1/B2) | maxerr={max(abs(h_real-h_2)):.2f}",
+    #            f"avg | maxerr={max(abs(h_real-h_avg)):.2f}",
+    #            f"tan(phi) | maxerr={max(abs(h_real-h_tans)):.2f}",
+    #            f"func(...sin(phi)) | maxerr={max(abs(h_real-h_funky_tans)):.2f}",
+    #            f"ellipse | maxerr={max(abs(h_real-h_ellipse)):.2f}",
+    #            ])
+    height = 4
+    ax.set_ylim([h-height, h+height])
+
+    ax2 = Axes["test"]
+    ax2.clear()
+    # ax2.plot(chosen, 1e6*(px1s - py1s + np.pi/2)/(2*np.pi*f), label="x1/y1")
+    # ax2.plot(chosen, 1e6*(px1s - px2s)/(2*np.pi*f), label="x1/x2")
+    B1s = np.array(B1s)
+    B2s = np.array(B2s)
+    ax2.plot(chosen, np.max(B1s[:, :, 0], axis=1))
+    ax2.plot(chosen, np.max(B1s[:, :, 1], axis=1))
+
+# ax2.plot(chosen, px2s - py2s + np.pi/2, label="x2/y2")
+    # ax2.plot(chosen, py1s - py2s, label="y1/y2")
+    # ax2.plot(chosen, px1s, label="px1")
+    # ax2.plot(chosen, px2s, label="px2")
+    # ax2.plot(chosen, py1s, label="py1")
+    # ax2.plot(chosen, py2s, label="py2")
+    ax2.legend()
+    ax2.set_ylabel("Microseconds")
+    ax2.set_xlabel(thing)
+    plt.pause(0.01)
+    print("askfjshadkfjh")
+
     plt.draw()
 
 
